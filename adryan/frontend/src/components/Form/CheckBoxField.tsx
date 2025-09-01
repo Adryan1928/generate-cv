@@ -1,21 +1,19 @@
 import { Control, useController } from "react-hook-form";
 import FieldWrapper from "./FieldWrapper";
 
-interface TextInputProps {
+interface CheckBoxFieldProps {
     name: string;
     control: Control<any>;
     disabled?: boolean;
     label?: string;
-    placeholder?: string;
 }
 
-export function TextInputField({
+export function CheckBoxField({
     name,
     control,
     label,
     disabled,
-    placeholder = "Digite aqui"
-}: TextInputProps) {
+}: CheckBoxFieldProps) {
 
     const { field, fieldState } = useController({name, control});
 
@@ -27,11 +25,10 @@ export function TextInputField({
         >
             <input
                 id={name}
-                type="text"
-                value={field.value}
+                type="checkbox"
+                checked={field.value}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
-                placeholder={placeholder}
                 disabled={disabled}
                 className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
             />

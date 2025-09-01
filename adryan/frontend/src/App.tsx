@@ -4,11 +4,58 @@ import { CV } from './services/cv'
 import { MdAlternateEmail } from "react-icons/md";
 import { FaLinkedin } from "react-icons/fa6";
 import { FaPhoneSquareAlt } from "react-icons/fa";
+import * as Yup from "yup";
+import { yupResolver } from '@hookform/resolvers/yup';
+import { SkillBar } from './components/SkillBar';
+
+
+const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
+  name: Yup.string().required("Nome é obrigatório").min(2, "Nome muito curto").max(100, "Nome muito longo"),
+  email: Yup.string().required("Email é obrigatório").email("Email inválido"),
+  phone: Yup.string().required("Telefone é obrigatório").min(10, "Telefone muito curto").max(15, "Telefone muito longo"),
+  linkedin: Yup.string().required("LinkedIn é obrigatório"),
+  // .url("URL inválida")
+  resume: Yup.string().required("Resumo é obrigatório").max(300, "Resumo muito longo"),
+
+  skills: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string().required("Nome da skill é obrigatório").min(2, "Nome muito curto").max(50, "Nome muito longo"),
+      level: Yup.number()
+        .required("Nível é obrigatório")
+        .min(1, "Mínimo é 1")
+        .max(5, "Máximo é 5"),
+    })
+  ),
+
+  experience: Yup.array().of(
+    Yup.object().shape({
+      company: Yup.string().required("Empresa é obrigatória").min(2).max(100),
+      position: Yup.string().required("Cargo é obrigatório").min(2).max(100),
+      initialDate: Yup.date()
+        .required("Data de início é obrigatória")
+        .min(new Date(1900, 0, 1), "Data mínima é 01/01/1900")
+        .max(new Date(), "Data não pode ser no futuro"),
+      finalDate: Yup.date()
+        .nullable()
+        .min(Yup.ref("initialDate"), "Data final não pode ser anterior à data de início")
+        .max(new Date(), "Data não pode ser no futuro"),
+      isActive: Yup.boolean().required("Status é obrigatório"),
+      description: Yup.string().required("Descrição é obrigatória").max(300, "Descrição muito longa"),
+    })
+  ),
+});
 
 
 function App() {
 
-  const {control, handleSubmit, watch} = useForm<CV>()
+  const {control, handleSubmit, watch} = useForm<CV>({
+    resolver: yupResolver(schema),
+    mode: "onSubmit",
+    defaultValues: {
+      skills: [],
+      experience: [],
+    },
+  })
 
   const onSubmit: SubmitHandler<CV> = (data) => {
     console.log("Dados do formulário:", data)
@@ -51,21 +98,35 @@ function App() {
               }
             </nav>
             <p
-              className='text-sm text-neutral-700 mt-4 indent-4 text-justify'
+              className='text-neutral-700 mt-1 indent-4 text-justify'
             >
               {watch("resume")}
             </p>
           </article>
 
-          <hr className='my-4 border-neutral-400'/>
+          <hr className='border-neutral-400'/>
 
           <article className='w-full'>
-            <div>
-            </div>
+            <h2 className='text-xl mt-6 mb-2'>Experiência</h2>
+            {watch("experience")?.map((exp, index) => (
+              <div key={index} className='flex flex-col my-2'>
+                <h3 className='text-lg font-semibold'>{exp.position} - {exp.company}</h3>
+                <p className='text-xs text-neutral-600'>{exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}</p>
+                <p className='text-sm'>{exp.description}</p>
+              </div>
+            ))}
           </article>
         </section>
-        <aside className='w-1/4 bg-slate-700 p-8'>
+        <aside className='w-1/4 bg-slate-700 p-8 flex flex-col gap-4'>
           <h2 className='text-xl text-neutral-50'>Habilidades</h2>
+          <div className='flex flex-col gap-2'>
+            {watch("skills")?.map((skill, index) => (
+              <div key={index} className='flex items-center justify-start gap-2'>
+                <span className='text-neutral-50 font-semibold'>{skill.name}</span>
+                <SkillBar level={skill.level} />
+              </div>
+            ))}
+          </div>
         </aside>
       </section>
     </main>
