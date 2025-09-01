@@ -4,8 +4,8 @@ export interface CV {
   phone: string;
   linkedin: string;
   resume: string;
-  skills: Skill[];
-  experience: Experience[];
+  skills?: Skill[];
+  experience?: Experience[];
 }
 
 export interface Skill {

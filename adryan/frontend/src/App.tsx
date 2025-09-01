@@ -4,11 +4,47 @@ import { CV } from './services/cv'
 import { MdAlternateEmail } from "react-icons/md";
 import { FaLinkedin } from "react-icons/fa6";
 import { FaPhoneSquareAlt } from "react-icons/fa";
+import * as Yup from "yup";
+import { yupResolver } from '@hookform/resolvers/yup';
+
+
+const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
+  name: Yup.string().required("Nome é obrigatório").min(2, "Nome muito curto").max(100, "Nome muito longo"),
+  email: Yup.string().required("Email é obrigatório").email("Email inválido"),
+  phone: Yup.string().required("Telefone é obrigatório").min(10, "Telefone muito curto").max(15, "Telefone muito longo"),
+  linkedin: Yup.string().required("LinkedIn é obrigatório"),
+  // .url("URL inválida")
+  resume: Yup.string().required("Resumo é obrigatório").max(300, "Resumo muito longo"),
+
+  skills: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string().required("Nome da skill é obrigatório").min(2, "Nome muito curto").max(50, "Nome muito longo"),
+      level: Yup.number()
+        .required("Nível é obrigatório")
+        .min(1, "Mínimo é 1")
+        .max(5, "Máximo é 5"),
+    })
+  ),
+
+  experience: Yup.array().of(
+    Yup.object().shape({
+      jobTitle: Yup.string().required("Cargo é obrigatório").min(2).max(100),
+      institution: Yup.string().required("Instituição é obrigatória").min(2).max(100),
+      year: Yup.number()
+        .required("Ano é obrigatório")
+        .min(1900, "Ano mínimo é 1900")
+        .max(new Date().getFullYear(), "Ano não pode ser no futuro"),
+    })
+  ),
+});
 
 
 function App() {
 
-  const {control, handleSubmit, watch} = useForm<CV>()
+  const {control, handleSubmit, watch} = useForm<CV>({
+    resolver: yupResolver(schema),
+    mode: "onSubmit",
+  })
 
   const onSubmit: SubmitHandler<CV> = (data) => {
     console.log("Dados do formulário:", data)
