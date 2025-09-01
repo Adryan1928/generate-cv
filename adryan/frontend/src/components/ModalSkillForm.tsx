@@ -1,30 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { SelectedSkillProps } from "./LeftBar";
 
 interface ModalSkillFormProps {
-  children: React.ReactNode;
   onAddSkill: (skill: { name: string; level: number }) => void;
+  updateSkill: (index: number, skill: { name: string; level: number }) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  selectedSkill?: SelectedSkillProps | null;
+  setSelectedSkill: (skill: SelectedSkillProps | null) => void;
 }
 
-export function ModalSkillForm({ children, onAddSkill }: ModalSkillFormProps) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
+export function ModalSkillForm({ onAddSkill, open, setOpen, selectedSkill, setSelectedSkill, updateSkill }: ModalSkillFormProps) {
+  const [name, setName] = useState('');
   const [level, setLevel] = useState(1);
+
+  useEffect(() => {
+    if (selectedSkill) {
+      setName(selectedSkill.name);
+      setLevel(selectedSkill.level);
+    } else {
+      setName("");
+      setLevel(1);
+    }
+  }, [selectedSkill, open]);
 
   const resetForm = () => {
     setName("");
     setLevel(1);
     setOpen(false);
+    setSelectedSkill(null);
   };
 
   const handleAdd = () => {
-    onAddSkill({ name, level });
+    if (selectedSkill) {
+      updateSkill(selectedSkill.index, { name, level });
+    } else {
+      onAddSkill({ name, level });
+    }
     resetForm();
   };
 
   return (
     <>
-      <div onClick={() => setOpen(true)} className="flex justify-end w-full">{children}</div>
-
       {open && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
           <div className="bg-neutral-900 p-6 rounded-lg shadow-lg w-1/4 flex flex-col gap-4">
@@ -52,7 +69,7 @@ export function ModalSkillForm({ children, onAddSkill }: ModalSkillFormProps) {
                 onClick={handleAdd}
                 className="bg-green-500 text-white px-3 py-1 rounded cursor-pointer hover:bg-green-400"
               >
-                Adicionar
+                {selectedSkill ? "Salvar" : "Adicionar"}
               </button>
             </div>
           </div>

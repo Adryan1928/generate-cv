@@ -1,14 +1,19 @@
 import { Control, useFieldArray } from "react-hook-form"
-import { CV } from "../services/cv"
+import { CV, Skill } from "../services/cv"
 import { TextInputField } from "./Form/TextInputField";
 import { TextAreaField } from "./Form/TextAreaField";
 import { TiPlus } from "react-icons/ti";
 import { ModalSkillForm } from "./ModalSkillForm";
 import { SkillBar } from "./SkillBar";
+import { useState } from "react";
 
 interface LeftBarProps {
   control: Control<CV, any, CV>;
   onSubmit: () => void;
+}
+
+export interface SelectedSkillProps extends Skill {
+  index: number;
 }
 
 export function LeftBar({
@@ -16,7 +21,10 @@ export function LeftBar({
   onSubmit
 }: LeftBarProps){
 
-    const { fields: skills, append: appendSkill, remove: removeSkill } = useFieldArray({
+    const [openSkillModal, setOpenSkillModal] = useState(false);
+    const [selectedSkill, setSelectedSkill] = useState<SelectedSkillProps | null>(null);
+
+    const { fields: skills, append: appendSkill, remove: removeSkill, update: updateSkill } = useFieldArray({
         control,
         name: "skills"
     })
@@ -62,7 +70,7 @@ export function LeftBar({
                     <ul className="flex flex-col gap-2">
                         {skills.map((skill, index) => (
                             <li key={skill.id} className="flex justify-between items-center">
-                                <div className="flex gap-4">
+                                <div className="flex gap-4 cursor-pointer" onClick={() => {setSelectedSkill({index, ...skill});setOpenSkillModal(true);}}>
                                     <span>{skill.name}</span>
                                     <SkillBar level={skill.level} />
                                 </div>
@@ -77,13 +85,21 @@ export function LeftBar({
                         ))}
                     </ul>
 
-                    <ModalSkillForm onAddSkill={appendSkill}>
-                        <div
-                            className="border rounded-full border-green-400 p-1 hover:bg-green-400/10 transition-colors cursor-pointer"
-                        >
-                            <TiPlus className="text-green-400" />
-                        </div>
-                    </ModalSkillForm>
+                    <div
+                        className="flex self-end border rounded-full border-green-400 p-1 hover:bg-green-400/10 transition-colors cursor-pointer"
+                        onClick={() => setOpenSkillModal(true)}
+                    >
+                        <TiPlus className="text-green-400" />
+                    </div>
+
+                    <ModalSkillForm
+                        onAddSkill={appendSkill}
+                        open={openSkillModal}
+                        setOpen={setOpenSkillModal}
+                        updateSkill={updateSkill}
+                        selectedSkill={selectedSkill}
+                        setSelectedSkill={setSelectedSkill}
+                    />
                 </div>
                 <div>
                     <input type="submit" value="Salvar" />
