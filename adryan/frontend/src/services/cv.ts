@@ -14,7 +14,10 @@ export interface Skill {
 }
 
 export interface Experience {
-  jobTitle: string;
-  institution: string;
-  year: number;
+  company: string;
+  position: string;
+  initialDate: Date;
+  finalDate?: Date;
+  isActive: boolean;
+  description: string;
 }

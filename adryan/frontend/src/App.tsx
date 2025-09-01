@@ -29,12 +29,18 @@ const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
 
   experience: Yup.array().of(
     Yup.object().shape({
-      jobTitle: Yup.string().required("Cargo é obrigatório").min(2).max(100),
-      institution: Yup.string().required("Instituição é obrigatória").min(2).max(100),
-      year: Yup.number()
-        .required("Ano é obrigatório")
-        .min(1900, "Ano mínimo é 1900")
-        .max(new Date().getFullYear(), "Ano não pode ser no futuro"),
+      company: Yup.string().required("Empresa é obrigatória").min(2).max(100),
+      position: Yup.string().required("Cargo é obrigatório").min(2).max(100),
+      initialDate: Yup.date()
+        .required("Data de início é obrigatória")
+        .min(new Date(1900, 0, 1), "Data mínima é 01/01/1900")
+        .max(new Date(), "Data não pode ser no futuro"),
+      finalDate: Yup.date()
+        .nullable()
+        .min(Yup.ref("initialDate"), "Data final não pode ser anterior à data de início")
+        .max(new Date(), "Data não pode ser no futuro"),
+      isActive: Yup.boolean().required("Status é obrigatório"),
+      description: Yup.string().required("Descrição é obrigatória").max(300, "Descrição muito longa"),
     })
   ),
 });
@@ -92,17 +98,23 @@ function App() {
               }
             </nav>
             <p
-              className='text-sm text-neutral-700 mt-4 indent-4 text-justify'
+              className='text-neutral-700 mt-1 indent-4 text-justify'
             >
               {watch("resume")}
             </p>
           </article>
 
-          <hr className='my-4 border-neutral-400'/>
+          <hr className='border-neutral-400'/>
 
           <article className='w-full'>
-            <div>
-            </div>
+            <h2 className='text-xl mt-6 mb-2'>Experiência</h2>
+            {watch("experience")?.map((exp, index) => (
+              <div key={index} className='flex flex-col my-2'>
+                <h3 className='text-lg font-semibold'>{exp.position} - {exp.company}</h3>
+                <p className='text-xs text-neutral-600'>{exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}</p>
+                <p className='text-sm'>{exp.description}</p>
+              </div>
+            ))}
           </article>
         </section>
         <aside className='w-1/4 bg-slate-700 p-8 flex flex-col gap-4'>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { SelectedSkillProps } from "./LeftBar";
+import { Skill } from "../services/cv";
 
 interface ModalSkillFormProps {
-  onAddSkill: (skill: { name: string; level: number }) => void;
-  updateSkill: (index: number, skill: { name: string; level: number }) => void;
+  onAddSkill: (skill: Skill) => void;
+  updateSkill: (index: number, skill: Skill) => void;
   open: boolean;
   setOpen: (open: boolean) => void;
   selectedSkill?: SelectedSkillProps | null;
