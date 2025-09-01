@@ -6,6 +6,7 @@ import { FaLinkedin } from "react-icons/fa6";
 import { FaPhoneSquareAlt } from "react-icons/fa";
 import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { SkillBar } from './components/SkillBar';
 
 
 const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
@@ -44,6 +45,10 @@ function App() {
   const {control, handleSubmit, watch} = useForm<CV>({
     resolver: yupResolver(schema),
     mode: "onSubmit",
+    defaultValues: {
+      skills: [],
+      experience: [],
+    },
   })
 
   const onSubmit: SubmitHandler<CV> = (data) => {
@@ -100,8 +105,16 @@ function App() {
             </div>
           </article>
         </section>
-        <aside className='w-1/4 bg-slate-700 p-8'>
+        <aside className='w-1/4 bg-slate-700 p-8 flex flex-col gap-4'>
           <h2 className='text-xl text-neutral-50'>Habilidades</h2>
+          <div className='flex flex-col gap-2'>
+            {watch("skills")?.map((skill, index) => (
+              <div key={index} className='flex items-center justify-start gap-2'>
+                <span className='text-neutral-50 font-semibold'>{skill.name}</span>
+                <SkillBar level={skill.level} />
+              </div>
+            ))}
+          </div>
         </aside>
       </section>
     </main>

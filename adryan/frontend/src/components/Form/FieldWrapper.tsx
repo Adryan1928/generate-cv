@@ -19,7 +19,7 @@ export default function FieldWrapper({
 
   return (
     <div className="flex flex-col gap-1 w-full">
-      {label && <label htmlFor={name} className="text-neutral-50">{label}</label>}
+      {label && <label htmlFor={name}>{label}</label>}
 
       {children}
 

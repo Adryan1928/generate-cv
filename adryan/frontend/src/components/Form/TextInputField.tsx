@@ -33,7 +33,7 @@ export function TextInputField({
                 onBlur={field.onBlur}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="border-1 border-neutral-800 p-2 rounded-lg w-full text-neutral-50 placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
+                className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
             />
         </FieldWrapper>
     );
