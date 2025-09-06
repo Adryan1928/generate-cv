@@ -7,9 +7,10 @@ import { FaPhoneSquareAlt } from "react-icons/fa";
 import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
+import { useState } from 'react';
 
 
-const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
+const schema: Yup.ObjectSchema<CV> = Yup.object({
   name: Yup.string().required("Nome é obrigatório").min(2, "Nome muito curto").max(100, "Nome muito longo"),
   email: Yup.string().required("Email é obrigatório").email("Email inválido"),
   phone: Yup.string().required("Telefone é obrigatório").min(10, "Telefone muito curto").max(15, "Telefone muito longo"),
@@ -18,7 +19,7 @@ const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
   resume: Yup.string().required("Resumo é obrigatório").max(300, "Resumo muito longo"),
 
   skills: Yup.array().of(
-    Yup.object().shape({
+    Yup.object({
       name: Yup.string().required("Nome da skill é obrigatório").min(2, "Nome muito curto").max(50, "Nome muito longo"),
       level: Yup.number()
         .required("Nível é obrigatório")
@@ -28,7 +29,7 @@ const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
   ),
 
   experience: Yup.array().of(
-    Yup.object().shape({
+    Yup.object({
       company: Yup.string().required("Empresa é obrigatória").min(2).max(100),
       position: Yup.string().required("Cargo é obrigatório").min(2).max(100),
       initialDate: Yup.date()
@@ -48,7 +49,7 @@ const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
 
 function App() {
 
-  const {control, handleSubmit, watch} = useForm<CV>({
+  const {control, handleSubmit, watch,  getValues, setValue} = useForm<CV>({
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
@@ -62,11 +63,59 @@ function App() {
     alert(`Olá, ${data.name}, seu email é ${data.email}`)
   }
 
+    const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  const generateResume = async (): Promise<void> => {
+    setIsGenerating(true);
+    const { name, skills, experience } = getValues();
+    const skillsText = skills ? skills.map(s => s.name).join(', ') : '';
+    const experienceText = experience ? experience.map(exp => `trabalhou como ${exp.position} na empresa ${exp.company}`).join('; ') : '';
+
+    const prompt = `
+    Crie um resumo profissional de 3 a 4 frases para um currículo em português, baseado nas seguintes informações:
+    - Nome: ${name || 'o profissional'}
+    - Habilidades: ${skillsText || 'nenhuma'}
+    - Experiência: ${experienceText || 'nenhuma'}
+
+    **Regras Importantes:**
+    - Responda APENAS com o parágrafo do resumo.
+    - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
+    - O resultado deve ser apenas o texto pronto para ser copiado e colado.
+  `;
+
+    try {
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+
+      if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
+      const result = await response.json();
+      const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text as string | undefined;
+
+      if (generatedText) {
+          setValue('resume', generatedText.trim(), { shouldValidate: true, shouldDirty: true });
+      } else {
+          throw new Error("A resposta da IA não contém texto.");
+      }
+    } catch (error) {
+      console.error("Erro ao gerar resumo:", error);
+      alert("Não foi possível gerar o resumo. Tente novamente.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <main className='flex flex-row'>
       <LeftBar
         control={control}
         onSubmit={handleSubmit(onSubmit)}
+        onGenerateResume={generateResume}
+        isGenerating={isGenerating}
       />
       <section className='flex flex-row w-3/4'>
         <section className='flex flex-col w-3/4 p-8'>

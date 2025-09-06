@@ -9,8 +9,11 @@ import { useState } from "react";
 import { ModalExperienceForm } from "./ModalExperienceForm";
 
 interface LeftBarProps {
-  control: Control<CV, any, CV>;
+  control: Control<CV, undefined, CV>;
   onSubmit: () => void;
+  onGenerateResume: () => void; 
+  isGenerating: boolean;
+
 }
 
 export interface SelectedSkillProps extends Skill {
@@ -23,7 +26,9 @@ export interface SelectedExperienceProps extends Experience {
 
 export function LeftBar({
   control,
-  onSubmit
+  onSubmit,
+  onGenerateResume,
+  isGenerating,
 }: LeftBarProps){
 
     const [openSkillModal, setOpenSkillModal] = useState(false);
@@ -75,6 +80,15 @@ export function LeftBar({
                         name="resume"
                         control={control}
                     />
+                
+                <button 
+                    type="button" 
+                    onClick={onGenerateResume} 
+                    disabled={isGenerating}
+                    className="w-full mt-2 p-2 bg-sky-600 text-white rounded-md hover:bg-sky-500 disabled:bg-sky-800 disabled:cursor-wait transition-colors"
+                >
+                    {isGenerating ? 'Gerando...' : 'Gerar Resumo com IA'}
+                </button>
                 </div>
                 <div className="flex flex-col gap-6">
                     <h2 className="text-2xl">Habilidades</h2>
