@@ -1,24 +1,17 @@
-import { useGeneratePDFMutation } from "../../hooks/pdf";
-import { generatePDF } from "../../services/pdf";
+import { useReactToPrint } from "react-to-print";
 import React from "react";
 
 interface ExportButtonProps {
   name?: string;
+  cvRef: React.RefObject<HTMLElement | null>;
 }
 
-export function ExportButton({ name }: ExportButtonProps) {
-  const generatePDFMutation = useGeneratePDFMutation();
+export function ExportButton({ name, cvRef }: ExportButtonProps) {
 
-  const handleExport = () => {
-    const filename = name?.trim()
-      ? `curriculo-${name.trim().toLowerCase().replace(/\s+/g, '-')}.pdf`
-      : 'curriculo.pdf';
-
-    const element: HTMLElement | null = document.querySelector('#cv-preview');
-    if (element) {
-      generatePDF({ element, filename });
-    }
-  };
+  const handleExport = useReactToPrint({
+    contentRef: cvRef,
+    documentTitle: name?.trim() ?? "cv",
+  });
 
   return (
     <button

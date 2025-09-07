@@ -8,6 +8,7 @@ import { SkillBar } from "./SkillBar";
 import { useState } from "react";
 import { ModalExperienceForm } from "./ModalExperienceForm";
 import { ExportButton } from "./Preview/ExportButton";
+import React from "react";
 
 interface LeftBarProps {
   control: Control<CV, undefined, CV>;
@@ -15,6 +16,7 @@ interface LeftBarProps {
   onGenerateResume: () => void; 
   isGenerating: boolean;
   watch: UseFormWatch<CV>;
+  cvRef: React.RefObject<HTMLElement | null>;
 }
 
 export interface SelectedSkillProps extends Skill {
@@ -31,6 +33,7 @@ export function LeftBar({
   onGenerateResume,
   isGenerating,
   watch,
+  cvRef,
 }: LeftBarProps){
 
     const [openSkillModal, setOpenSkillModal] = useState(false);
@@ -175,7 +178,7 @@ export function LeftBar({
                     />
                 </div>
                 <div className="flex justify-between">
-                    <ExportButton name={watch("name")}/>
+                    <ExportButton name={watch("name")} cvRef={cvRef} />
                     <input type="submit" value="Salvar" className="bg-sky-800 text-white rounded px-4 py-2 hover:bg-sky-700 transition-colors cursor-pointer" />
                     
                 </div>

@@ -8,6 +8,7 @@ import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
 import { useGenerateResumeMutation } from './hooks/ia';
+import { useRef } from 'react';
 
 
 const schema: Yup.ObjectSchema<CV> = Yup.object({
@@ -48,6 +49,8 @@ const schema: Yup.ObjectSchema<CV> = Yup.object({
 
 
 function App() {
+  const cvRef = useRef<HTMLElement>(null);
+
   const {control, handleSubmit, watch,  getValues, setValue} = useForm<CV>({
     resolver: yupResolver(schema),
     mode: "onSubmit",
@@ -102,8 +105,9 @@ function App() {
         onGenerateResume={handleGenerateResume}
         isGenerating={generateResumeMutation.isPending}
         watch={watch}
+        cvRef={cvRef}
       />
-      <section className='flex flex-row w-3/4' id='cv-preview'>
+      <section className='flex flex-row w-3/4 print:w-full print:h-screen' id='cv-preview' ref={cvRef}>
         <section className='flex flex-col w-3/4 p-8'>
           <article className='flex flex-col w-full'>
             <h2 className='text-xl'>{watch("name")}</h2>
