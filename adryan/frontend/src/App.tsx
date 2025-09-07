@@ -7,7 +7,7 @@ import { FaPhoneSquareAlt } from "react-icons/fa";
 import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
-import { useState } from 'react';
+import { useGenerateResumeMutation } from './hooks/ia';
 
 
 const schema: Yup.ObjectSchema<CV> = Yup.object({
@@ -48,7 +48,6 @@ const schema: Yup.ObjectSchema<CV> = Yup.object({
 
 
 function App() {
-
   const {control, handleSubmit, watch,  getValues, setValue} = useForm<CV>({
     resolver: yupResolver(schema),
     mode: "onSubmit",
@@ -58,15 +57,14 @@ function App() {
     },
   })
 
+  const generateResumeMutation = useGenerateResumeMutation()
+
   const onSubmit: SubmitHandler<CV> = (data) => {
     console.log("Dados do formulário:", data)
     alert(`Olá, ${data.name}, seu email é ${data.email}`)
   }
 
-    const [isGenerating, setIsGenerating] = useState<boolean>(false);
-
-  const generateResume = async (): Promise<void> => {
-    setIsGenerating(true);
+  const handleGenerateResume = () => {
     const { name, skills, experience } = getValues();
     const skillsText = skills ? skills.map(s => s.name).join(', ') : '';
     const experienceText = experience ? experience.map(exp => `trabalhou como ${exp.position} na empresa ${exp.company}`).join('; ') : '';
@@ -81,43 +79,31 @@ function App() {
     - Responda APENAS com o parágrafo do resumo.
     - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
     - O resultado deve ser apenas o texto pronto para ser copiado e colado.
+    - Até no máximo 300 caracteres.
   `;
 
-    try {
-      const apiKey = "";
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-      const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-
-      if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
-      const result = await response.json();
-      const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text as string | undefined;
-
-      if (generatedText) {
-          setValue('resume', generatedText.trim(), { shouldValidate: true, shouldDirty: true });
-      } else {
-          throw new Error("A resposta da IA não contém texto.");
-      }
-    } catch (error) {
+  generateResumeMutation.mutate(prompt, {
+    onSuccess: (data) => {
+      setValue('resume', data.data.candidates[0].content.parts[0].text.trim(), { shouldValidate: true, shouldDirty: true });
+    },
+    onError: (error) => {
       console.error("Erro ao gerar resumo:", error);
       alert("Não foi possível gerar o resumo. Tente novamente.");
-    } finally {
-      setIsGenerating(false);
     }
+  })
   };
+
 
   return (
     <main className='flex flex-row'>
       <LeftBar
         control={control}
         onSubmit={handleSubmit(onSubmit)}
-        onGenerateResume={generateResume}
-        isGenerating={isGenerating}
+        onGenerateResume={handleGenerateResume}
+        isGenerating={generateResumeMutation.isPending}
+        watch={watch}
       />
-      <section className='flex flex-row w-3/4'>
+      <section className='flex flex-row w-3/4' id='cv-preview'>
         <section className='flex flex-col w-3/4 p-8'>
           <article className='flex flex-col w-full'>
             <h2 className='text-xl'>{watch("name")}</h2>

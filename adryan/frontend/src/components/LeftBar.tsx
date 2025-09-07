@@ -1,4 +1,4 @@
-import { Control, useFieldArray } from "react-hook-form"
+import { Control, useFieldArray, UseFormWatch } from "react-hook-form"
 import { CV, Experience, Skill } from "../services/cv"
 import { TextInputField } from "./Form/TextInputField";
 import { TextAreaField } from "./Form/TextAreaField";
@@ -7,13 +7,14 @@ import { ModalSkillForm } from "./ModalSkillForm";
 import { SkillBar } from "./SkillBar";
 import { useState } from "react";
 import { ModalExperienceForm } from "./ModalExperienceForm";
+import { ExportButton } from "./Preview/ExportButton";
 
 interface LeftBarProps {
   control: Control<CV, undefined, CV>;
   onSubmit: () => void;
   onGenerateResume: () => void; 
   isGenerating: boolean;
-
+  watch: UseFormWatch<CV>;
 }
 
 export interface SelectedSkillProps extends Skill {
@@ -29,6 +30,7 @@ export function LeftBar({
   onSubmit,
   onGenerateResume,
   isGenerating,
+  watch,
 }: LeftBarProps){
 
     const [openSkillModal, setOpenSkillModal] = useState(false);
@@ -85,7 +87,7 @@ export function LeftBar({
                     type="button" 
                     onClick={onGenerateResume} 
                     disabled={isGenerating}
-                    className="w-full mt-2 p-2 bg-sky-600 text-white rounded-md hover:bg-sky-500 disabled:bg-sky-800 disabled:cursor-wait transition-colors"
+                    className="w-full mt-2 p-2 bg-slate-800 text-white rounded-md hover:bg-slate-700 disabled:bg-slate-800 disabled:cursor-wait transition-colors cursor-pointer"
                 >
                     {isGenerating ? 'Gerando...' : 'Gerar Resumo com IA'}
                 </button>
@@ -172,8 +174,10 @@ export function LeftBar({
                         setSelectedExperience={setSelectedExperience}
                     />
                 </div>
-                <div className="flex justify-end">
-                    <input type="submit" value="Salvar" className="bg-slate-700 text-white rounded px-4 py-2 hover:bg-slate-600 transition-colors cursor-pointer" />
+                <div className="flex justify-between">
+                    <ExportButton name={watch("name")}/>
+                    <input type="submit" value="Salvar" className="bg-sky-800 text-white rounded px-4 py-2 hover:bg-sky-700 transition-colors cursor-pointer" />
+                    
                 </div>
             </form>
         </section>

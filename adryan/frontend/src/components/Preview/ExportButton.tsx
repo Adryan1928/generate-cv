@@ -1,27 +1,32 @@
-import { generatePDF } from '../../services/pdfService';
+import { useGeneratePDFMutation } from "../../hooks/pdf";
+import { generatePDF } from "../../services/pdf";
+import React from "react";
 
 interface ExportButtonProps {
   name?: string;
 }
 
-function ExportButton({ name }: ExportButtonProps) {
+export function ExportButton({ name }: ExportButtonProps) {
+  const generatePDFMutation = useGeneratePDFMutation();
+
   const handleExport = () => {
     const filename = name?.trim()
       ? `curriculo-${name.trim().toLowerCase().replace(/\s+/g, '-')}.pdf`
       : 'curriculo.pdf';
 
-    generatePDF('cv-preview', filename);
+    const element: HTMLElement | null = document.querySelector('#cv-preview');
+    if (element) {
+      generatePDF({ element, filename });
+    }
   };
 
   return (
     <button
+      type="button"
       onClick={handleExport}
-      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      className="cursor-pointer bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700 transition"
     >
       Exportar PDF
     </button>
   );
 }
-
-export default ExportButton;
-
