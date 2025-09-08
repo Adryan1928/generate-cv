@@ -7,19 +7,20 @@ import { FaPhoneSquareAlt } from "react-icons/fa";
 import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
-import { ThemeSwitcher } from "./components/Form/ThemeSwitcher";  // <-- import novo
+import { useGenerateResumeMutation } from './hooks/ia';
+import { useRef } from 'react';
 
 
-// Schema de validação com Yup
-const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
+const schema: Yup.ObjectSchema<CV> = Yup.object({
   name: Yup.string().required("Nome é obrigatório").min(2, "Nome muito curto").max(100, "Nome muito longo"),
   email: Yup.string().required("Email é obrigatório").email("Email inválido"),
   phone: Yup.string().required("Telefone é obrigatório").min(10, "Telefone muito curto").max(15, "Telefone muito longo"),
   linkedin: Yup.string().required("LinkedIn é obrigatório"),
+  // .url("URL inválida")
   resume: Yup.string().required("Resumo é obrigatório").max(300, "Resumo muito longo"),
 
   skills: Yup.array().of(
-    Yup.object().shape({
+    Yup.object({
       name: Yup.string().required("Nome da skill é obrigatório").min(2, "Nome muito curto").max(50, "Nome muito longo"),
       level: Yup.number()
         .required("Nível é obrigatório")
@@ -29,7 +30,7 @@ const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
   ),
 
   experience: Yup.array().of(
-    Yup.object().shape({
+    Yup.object({
       company: Yup.string().required("Empresa é obrigatória").min(2).max(100),
       position: Yup.string().required("Cargo é obrigatório").min(2).max(100),
       initialDate: Yup.date()
@@ -48,8 +49,9 @@ const schema: Yup.ObjectSchema<CV> = Yup.object().shape({
 
 
 function App() {
+  const cvRef = useRef<HTMLElement>(null);
 
-  const { control, handleSubmit, watch } = useForm<CV>({
+  const {control, handleSubmit, watch,  getValues, setValue} = useForm<CV>({
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
@@ -58,25 +60,115 @@ function App() {
     },
   })
 
+  const generateResumeMutation = useGenerateResumeMutation()
+
   const onSubmit: SubmitHandler<CV> = (data) => {
     console.log("Dados do formulário:", data)
     alert(`Olá, ${data.name}, seu email é ${data.email}`)
   }
 
+  const handleGenerateResume = () => {
+    const { name, skills, experience } = getValues();
+    const skillsText = skills ? skills.map(s => s.name).join(', ') : '';
+    const experienceText = experience ? experience.map(exp => `trabalhou como ${exp.position} na empresa ${exp.company}`).join('; ') : '';
+
+    const prompt = `
+    Crie um resumo profissional de 3 a 4 frases para um currículo em português, baseado nas seguintes informações:
+    - Nome: ${name || 'o profissional'}
+    - Habilidades: ${skillsText || 'nenhuma'}
+    - Experiência: ${experienceText || 'nenhuma'}
+
+    **Regras Importantes:**
+    - Responda APENAS com o parágrafo do resumo.
+    - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
+    - O resultado deve ser apenas o texto pronto para ser copiado e colado.
+    - Até no máximo 300 caracteres.
+  `;
+
+  generateResumeMutation.mutate(prompt, {
+    onSuccess: (data) => {
+      setValue('resume', data.data.candidates[0].content.parts[0].text.trim(), { shouldValidate: true, shouldDirty: true });
+    },
+    onError: (error) => {
+      console.error("Erro ao gerar resumo:", error);
+      alert("Não foi possível gerar o resumo. Tente novamente.");
+    }
+  })
+  };
+
+
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-neutral-900 dark:text-white transition-colors">
-      {/* Botão do ThemeSwitcher no topo */}
-      <div className="flex justify-end p-4">
-        <ThemeSwitcher />
-      </div>
+    <main className='flex flex-row'>
+      <LeftBar
+        control={control}
+        onSubmit={handleSubmit(onSubmit)}
+        onGenerateResume={handleGenerateResume}
+        isGenerating={generateResumeMutation.isPending}
+        watch={watch}
+        cvRef={cvRef}
+      />
+      <section className='flex flex-row w-3/4 print:w-full print:h-screen' id='cv-preview' ref={cvRef}>
+        <section className='flex flex-col w-3/4 p-8'>
+          <article className='flex flex-col w-full'>
+            <h2 className='text-xl'>{watch("name")}</h2>
+            <nav className='flex gap-2'>
+              {watch("email") &&
+                <a
+                  href={`mailto:${watch("email")}`}
+                  className='flex justify-center items-center gap-0.5 text-sm text-neutral-700'>
+                    <MdAlternateEmail />{watch("email")}
+                </a>
+              }
 
-      <main className='flex flex-row'>
-        <LeftBar
-          control={control}
-          onSubmit={handleSubmit(onSubmit)}
-        />
+              {watch("phone") &&
+                <a
+                  href={`tel:${watch("phone")}`}
+                  className='flex justify-center items-center gap-0.5 text-sm text-neutral-700'>
+                    <FaPhoneSquareAlt />{watch("phone")}
+                </a>
+              }
 
-        <section className='flex flex-row w-3/4'>
-          {/* Seção Principal */}
-          <section className='flex flex-col w-3/4 p-8'>
-            <article cla
+              {watch("linkedin") &&
+                <a
+                  href={watch("linkedin").startsWith("http") ? watch("linkedin") : `https://linkedin.com/in/${watch("linkedin")}`}
+                  className='flex justify-center items-center gap-0.5 text-neutral-700'>
+                    <FaLinkedin />{watch("linkedin")}
+                </a>
+              }
+            </nav>
+            <p
+              className='text-neutral-700 mt-1 indent-4 text-justify'
+            >
+              {watch("resume")}
+            </p>
+          </article>
+
+          <hr className='border-neutral-400'/>
+
+          <article className='w-full'>
+            <h2 className='text-xl mt-6 mb-2'>Experiência</h2>
+            {watch("experience")?.map((exp, index) => (
+              <div key={index} className='flex flex-col my-2'>
+                <h3 className='text-lg font-semibold'>{exp.position} - {exp.company}</h3>
+                <p className='text-xs text-neutral-600'>{exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}</p>
+                <p className='text-sm'>{exp.description}</p>
+              </div>
+            ))}
+          </article>
+        </section>
+        <aside className='w-1/4 bg-slate-700 p-8 flex flex-col gap-4'>
+          <h2 className='text-xl text-neutral-50'>Habilidades</h2>
+          <div className='flex flex-col gap-2'>
+            {watch("skills")?.map((skill, index) => (
+              <div key={index} className='flex items-center justify-start gap-2'>
+                <span className='text-neutral-50 font-semibold'>{skill.name}</span>
+                <SkillBar level={skill.level} />
+              </div>
+            ))}
+          </div>
+        </aside>
+      </section>
+    </main>
+  )
+}
+
