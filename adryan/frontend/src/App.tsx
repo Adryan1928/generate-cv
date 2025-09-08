@@ -7,6 +7,7 @@ import { FaPhoneSquareAlt } from "react-icons/fa";
 import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
+import { useGenerateResumeMutation } from './hooks/ia';
 import { useRef } from 'react';
 
 

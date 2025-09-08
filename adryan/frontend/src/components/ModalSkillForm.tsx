@@ -73,21 +73,4 @@ export function ModalSkillForm({
             />
             <div className="flex justify-end gap-2">
               <button
-                onClick={resetForm}
-                className="px-3 py-1 text-red-500 hover:text-red-400 cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleAdd}
-                className="bg-green-500 text-white px-3 py-1 rounded cursor-pointer hover:bg-green-400"
-              >
-                {selectedSkill ? "Salvar" : "Adicionar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+                onClick={reset
