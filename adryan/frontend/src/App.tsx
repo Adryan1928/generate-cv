@@ -76,7 +76,6 @@ function App() {
   const createCVMutation = useCreateCVMutation()
 
   const onSubmit: SubmitHandler<CV> = (data) => {
-    alert(data)
     createCVMutation.mutate(data, {
       onSuccess: (response) => {
         alert("CV salvo com sucesso!");

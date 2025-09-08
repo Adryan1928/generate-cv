@@ -1,0 +1,25 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copia arquivos de dependências
+COPY package.json .
+COPY package-lock.json .
+
+# Instala dependências
+RUN npm install --production
+
+# Copia o restante do código
+COPY . .
+
+# Build do projeto Vite
+RUN npm run build
+
+# Instala servidor estático para servir arquivos
+RUN npm install -g serve
+
+# Expõe porta 80
+EXPOSE 80
+
+# Serve arquivos da pasta dist
+CMD ["serve", "-s", "dist", "-l", "80"]

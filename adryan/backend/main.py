@@ -1,9 +1,15 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 from dependencies import get_session
 from models import CV, Skill, Experience
 from schemas import CVSchema
 from fastapi.middleware.cors import CORSMiddleware
+from utils import load_env
+import os
+
+load_env()
+
+BACK_NAME = os.getenv("BACK_NAME", "Default")
 
 app = FastAPI()
 
@@ -24,7 +30,7 @@ def home():
     """
     Home route
     """
-    return {"message": "Bem vindo ao nosso backend!"}
+    return {"message": "Bem vindo ao nosso backend!", "instância": BACK_NAME}
 
 @app.post("/cv")
 def create_cv(
