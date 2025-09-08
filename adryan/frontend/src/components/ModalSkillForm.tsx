@@ -11,8 +11,15 @@ interface ModalSkillFormProps {
   setSelectedSkill: (skill: SelectedSkillProps | null) => void;
 }
 
-export function ModalSkillForm({ onAddSkill, open, setOpen, selectedSkill, setSelectedSkill, updateSkill }: ModalSkillFormProps) {
-  const [name, setName] = useState('');
+export function ModalSkillForm({
+  onAddSkill,
+  open,
+  setOpen,
+  selectedSkill,
+  setSelectedSkill,
+  updateSkill,
+}: ModalSkillFormProps) {
+  const [name, setName] = useState("");
   const [level, setLevel] = useState(1);
 
   useEffect(() => {
@@ -45,14 +52,16 @@ export function ModalSkillForm({ onAddSkill, open, setOpen, selectedSkill, setSe
     <>
       {open && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-neutral-900 p-6 rounded-lg shadow-lg w-1/4 flex flex-col gap-4">
-            <h2 className="text-xl">Adicionar Habilidade</h2>
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-lg shadow-lg w-1/4 flex flex-col gap-4 transition-colors">
+            <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">
+              {selectedSkill ? "Editar Habilidade" : "Adicionar Habilidade"}
+            </h2>
             <input
               type="text"
               placeholder="Nome da skill"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
+              className="border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-green-400"
             />
             <input
               type="number"
@@ -60,22 +69,8 @@ export function ModalSkillForm({ onAddSkill, open, setOpen, selectedSkill, setSe
               max={5}
               value={level}
               onChange={(e) => setLevel(Number(e.target.value))}
-              className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
+              className="border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-green-400"
             />
             <div className="flex justify-end gap-2">
-              <button onClick={resetForm} className="px-3 py-1 text-red-500 hover:text-red-400 cursor-pointer">
-                Cancelar
-              </button>
               <button
-                onClick={handleAdd}
-                className="bg-green-500 text-white px-3 py-1 rounded cursor-pointer hover:bg-green-400"
-              >
-                {selectedSkill ? "Salvar" : "Adicionar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+                onClick={reset

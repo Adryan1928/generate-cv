@@ -1,4 +1,4 @@
-import { Control, useFieldArray, UseFormWatch } from "react-hook-form"
+import { Control, useFieldArray } from "react-hook-form"
 import { CV, Experience, Skill } from "../services/cv"
 import { TextInputField } from "./Form/TextInputField";
 import { TextAreaField } from "./Form/TextAreaField";
@@ -7,14 +7,10 @@ import { ModalSkillForm } from "./ModalSkillForm";
 import { SkillBar } from "./SkillBar";
 import { useState } from "react";
 import { ModalExperienceForm } from "./ModalExperienceForm";
-import { ExportButton } from "./Preview/ExportButton";
 
 interface LeftBarProps {
-  control: Control<CV, undefined, CV>;
+  control: Control<CV, any, CV>;
   onSubmit: () => void;
-  onGenerateResume: () => void; 
-  isGenerating: boolean;
-  watch: UseFormWatch<CV>;
 }
 
 export interface SelectedSkillProps extends Skill {
@@ -27,10 +23,7 @@ export interface SelectedExperienceProps extends Experience {
 
 export function LeftBar({
   control,
-  onSubmit,
-  onGenerateResume,
-  isGenerating,
-  watch,
+  onSubmit
 }: LeftBarProps){
 
     const [openSkillModal, setOpenSkillModal] = useState(false);
@@ -50,11 +43,12 @@ export function LeftBar({
 
 
     return (
-        <section className="flex flex-col bg-neutral-900 w-1/4 items-center py-10 px-4 h-screen overflow-auto scrollbar-custom gap-12 text-neutral-50">
+        <section className="flex flex-col bg-neutral-100 dark:bg-neutral-900 w-1/4 items-center py-10 px-4 h-screen overflow-auto scrollbar-custom gap-12 text-neutral-900 dark:text-neutral-50 transition-colors">
             <div>
-                <h1 className="text-neutral-50 text-3xl">CV</h1>
+                <h1 className="text-3xl">CV</h1>
             </div>
             <form onSubmit={onSubmit} className="flex flex-col gap-10 w-full">
+                {/* Dados Pessoais */}
                 <div className="flex flex-col gap-6">
                     <h2 className="text-2xl">Dados Pessoais</h2>
                     <TextInputField
@@ -78,27 +72,23 @@ export function LeftBar({
                         control={control}
                     />
                     <TextAreaField
-                        label="Resume"
+                        label="Resumo"
                         name="resume"
                         control={control}
                     />
-                
-                <button 
-                    type="button" 
-                    onClick={onGenerateResume} 
-                    disabled={isGenerating}
-                    className="w-full mt-2 p-2 bg-slate-800 text-white rounded-md hover:bg-slate-700 disabled:bg-slate-800 disabled:cursor-wait transition-colors cursor-pointer"
-                >
-                    {isGenerating ? 'Gerando...' : 'Gerar Resumo com IA'}
-                </button>
                 </div>
+
+                {/* Habilidades */}
                 <div className="flex flex-col gap-6">
                     <h2 className="text-2xl">Habilidades</h2>
 
                     <ul className="flex flex-col gap-2">
                         {skills.map((skill, index) => (
                             <li key={skill.id} className="flex justify-between items-center">
-                                <div className="flex gap-4 cursor-pointer" onClick={() => {setSelectedSkill({index, ...skill});setOpenSkillModal(true);}}>
+                                <div 
+                                    className="flex gap-4 cursor-pointer"
+                                    onClick={() => {setSelectedSkill({index, ...skill});setOpenSkillModal(true);}}
+                                >
                                     <span>{skill.name}</span>
                                     <SkillBar level={skill.level} />
                                 </div>
@@ -129,19 +119,25 @@ export function LeftBar({
                         setSelectedSkill={setSelectedSkill}
                     />
                 </div>
+
+                {/* Experiências */}
                 <div className="flex flex-col gap-6">
                     <h2 className="text-2xl">Experiências</h2>
 
                     <ul className="flex flex-col gap-2">
                         {experience.map((exp, index) => (
                             <li key={exp.id} className="flex justify-between items-center">
-                                <div className="flex flex-col cursor-pointer border-1 border-neutral-50 p-2 rounded w-3/4" onClick={() => {setSelectedExperience({index, ...exp});setOpenExperienceModal(true);}}>
-                                    <div className="flex ">
+                                <div 
+                                    className="flex flex-col cursor-pointer border border-neutral-300 dark:border-neutral-600 p-2 rounded w-3/4"
+                                    onClick={() => {setSelectedExperience({index, ...exp});setOpenExperienceModal(true);}}
+                                >
+                                    <div className="flex">
                                         <span>{exp.company} - {exp.position}</span>
-                                        
                                     </div>
                                     <div>
-                                        <span className="text-xs text-neutral-300">{exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}</span>
+                                        <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                          {exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}
+                                        </span>
                                     </div>
                                     <div>
                                         <span className="text-sm">{exp.description}</span>
@@ -174,10 +170,14 @@ export function LeftBar({
                         setSelectedExperience={setSelectedExperience}
                     />
                 </div>
-                <div className="flex justify-between">
-                    <ExportButton name={watch("name")}/>
-                    <input type="submit" value="Salvar" className="bg-sky-800 text-white rounded px-4 py-2 hover:bg-sky-700 transition-colors cursor-pointer" />
-                    
+
+                {/* Botão salvar */}
+                <div className="flex justify-end">
+                    <input 
+                        type="submit" 
+                        value="Salvar" 
+                        className="bg-slate-700 dark:bg-slate-600 text-white rounded px-4 py-2 hover:bg-slate-600 dark:hover:bg-slate-500 transition-colors cursor-pointer" 
+                    />
                 </div>
             </form>
         </section>

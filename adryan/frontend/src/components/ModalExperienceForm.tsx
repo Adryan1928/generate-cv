@@ -11,13 +11,20 @@ interface ModalExperienceFormProps {
   setSelectedExperience: (experience: SelectedExperienceProps | null) => void;
 }
 
-export function ModalExperienceForm({ onAddExperience, open, setOpen, selectedExperience, setSelectedExperience, updateExperience }: ModalExperienceFormProps) {
-  const [company, setCompany] = useState('');
-  const [position, setPosition] = useState('');
+export function ModalExperienceForm({
+  onAddExperience,
+  open,
+  setOpen,
+  selectedExperience,
+  setSelectedExperience,
+  updateExperience,
+}: ModalExperienceFormProps) {
+  const [company, setCompany] = useState("");
+  const [position, setPosition] = useState("");
   const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = useState<Date | undefined>(undefined);
   const [isActive, setIsActive] = useState(false);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (selectedExperience) {
@@ -50,79 +57,25 @@ export function ModalExperienceForm({ onAddExperience, open, setOpen, selectedEx
 
   const handleAdd = () => {
     if (selectedExperience) {
-      updateExperience(selectedExperience.index, { company, position, initialDate: initialDate!, finalDate, isActive, description });
+      updateExperience(selectedExperience.index, {
+        company,
+        position,
+        initialDate: initialDate!,
+        finalDate,
+        isActive,
+        description,
+      });
     } else {
-      onAddExperience({ company, position, initialDate: initialDate!, finalDate, isActive, description });
+      onAddExperience({
+        company,
+        position,
+        initialDate: initialDate!,
+        finalDate,
+        isActive,
+        description,
+      });
     }
     resetForm();
   };
 
   return (
-    <>
-      {open && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-neutral-900 p-6 rounded-lg shadow-lg w-1/4 flex flex-col gap-4">
-            <h2 className="text-xl">Adicionar Habilidade</h2>
-            <input
-              type="text"
-              placeholder="Empresa"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
-            />
-            <input
-              type="text"
-              placeholder="Cargo"
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
-            />
-            <input
-              type="date"
-              placeholder="Data de Início"
-              value={initialDate?.toISOString().split("T")[0]}
-              onChange={(e) => setInitialDate(new Date(e.target.value))}
-              className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
-            />
-            {!isActive && (
-              <input
-                type="date"
-                placeholder="Data de Término"
-                value={finalDate?.toISOString().split("T")[0]}
-                onChange={(e) => setFinalDate(new Date(e.target.value))}
-                className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
-              />
-            )}
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-                className="border-1 border-neutral-800 rounded-lg"
-              />
-              <label className="text-sm">Trabalho Atual?</label>
-            </div>
-            <textarea
-              placeholder="Descrição"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="border-1 border-neutral-800 p-2 rounded-lg w-full placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
-            />
-            <div className="flex justify-end gap-2">
-              <button onClick={resetForm} className="px-3 py-1 text-red-500 hover:text-red-400 cursor-pointer">
-                Cancelar
-              </button>
-              <button
-                onClick={handleAdd}
-                className="bg-green-500 text-white px-3 py-1 rounded cursor-pointer hover:bg-green-400"
-              >
-                {selectedExperience ? "Salvar" : "Adicionar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
