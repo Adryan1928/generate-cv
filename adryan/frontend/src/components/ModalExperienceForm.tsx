@@ -23,9 +23,9 @@ export function ModalExperienceForm({ onAddExperience, open, setOpen, selectedEx
     if (selectedExperience) {
       setCompany(selectedExperience.company);
       setPosition(selectedExperience.position);
-      setInitialDate(selectedExperience.initialDate);
-      setFinalDate(selectedExperience.finalDate);
-      setIsActive(selectedExperience.isActive);
+      setInitialDate(selectedExperience.initial_date);
+      setFinalDate(selectedExperience.final_date);
+      setIsActive(selectedExperience.is_active);
       setDescription(selectedExperience.description);
     } else {
       setCompany("");
@@ -50,9 +50,9 @@ export function ModalExperienceForm({ onAddExperience, open, setOpen, selectedEx
 
   const handleAdd = () => {
     if (selectedExperience) {
-      updateExperience(selectedExperience.index, { company, position, initialDate: initialDate!, finalDate, isActive, description });
+      updateExperience(selectedExperience.index, { company, position, initial_date: initialDate!, final_date: finalDate, is_active: isActive, description });
     } else {
-      onAddExperience({ company, position, initialDate: initialDate!, finalDate, isActive, description });
+      onAddExperience({ company, position, initial_date: initialDate!, final_date: finalDate, is_active: isActive, description });
     }
     resetForm();
   };

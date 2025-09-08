@@ -1,3 +1,5 @@
+import request, { ResponseWrapper } from "../utils/request";
+
 export interface CV {
   name: string;
   email: string;
@@ -6,6 +8,7 @@ export interface CV {
   resume: string;
   skills?: Skill[];
   experience?: Experience[];
+  code: string;
 }
 
 export interface Skill {
@@ -16,8 +19,17 @@ export interface Skill {
 export interface Experience {
   company: string;
   position: string;
-  initialDate: Date;
-  finalDate?: Date;
-  isActive: boolean;
+  initial_date: Date;
+  final_date?: Date;
+  is_active: boolean;
   description: string;
+}
+
+
+export const createCV = (cv: CV) => {
+  return request.post("/cv", cv);
+}
+
+export const getCV = (code: string) => {
+  return request.get<CV>(`/cv/${code}`);
 }

@@ -1,6 +1,6 @@
 import { LeftBar } from './components/LeftBar'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import { CV } from './services/cv'
+import { CV, getCV } from './services/cv'
 import { MdAlternateEmail } from "react-icons/md";
 import { FaLinkedin } from "react-icons/fa6";
 import { FaPhoneSquareAlt } from "react-icons/fa";
@@ -8,7 +8,8 @@ import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
 import { useGenerateResumeMutation } from './hooks/ia';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useCreateCVMutation, useGetCVQuery } from './hooks/cv';
 
 
 const schema: Yup.ObjectSchema<CV> = Yup.object({
@@ -33,38 +34,57 @@ const schema: Yup.ObjectSchema<CV> = Yup.object({
     Yup.object({
       company: Yup.string().required("Empresa é obrigatória").min(2).max(100),
       position: Yup.string().required("Cargo é obrigatório").min(2).max(100),
-      initialDate: Yup.date()
+      initial_date: Yup.date()
         .required("Data de início é obrigatória")
         .min(new Date(1900, 0, 1), "Data mínima é 01/01/1900")
         .max(new Date(), "Data não pode ser no futuro"),
-      finalDate: Yup.date()
+      final_date: Yup.date()
         .nullable()
-        .min(Yup.ref("initialDate"), "Data final não pode ser anterior à data de início")
+        .min(Yup.ref("initial_date"), "Data final não pode ser anterior à data de início")
         .max(new Date(), "Data não pode ser no futuro"),
-      isActive: Yup.boolean().required("Status é obrigatório"),
+      is_active: Yup.boolean().required("Status é obrigatório"),
       description: Yup.string().required("Descrição é obrigatória").max(300, "Descrição muito longa"),
     })
   ),
+
+  code: Yup.string().required("Código é obrigatório"),
 });
 
 
 function App() {
+  const [cvCode, setCvCode] = useState("");
   const cvRef = useRef<HTMLElement>(null);
 
   const {control, handleSubmit, watch,  getValues, setValue} = useForm<CV>({
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      linkedin: "",
+      resume: "",
+      code: "",
       skills: [],
       experience: [],
     },
   })
 
+  const { data: cvData } = useGetCVQuery(cvCode);
+
   const generateResumeMutation = useGenerateResumeMutation()
+  const createCVMutation = useCreateCVMutation()
 
   const onSubmit: SubmitHandler<CV> = (data) => {
-    console.log("Dados do formulário:", data)
-    alert(`Olá, ${data.name}, seu email é ${data.email}`)
+    createCVMutation.mutate(data, {
+      onSuccess: (response) => {
+        alert("CV salvo com sucesso!");
+      },
+      onError: (error) => {
+        console.error("Erro ao salvar CV:", error);
+        alert("Não foi possível salvar o CV. Tente novamente.");
+      }
+    });
   }
 
   const handleGenerateResume = () => {
@@ -73,39 +93,69 @@ function App() {
     const experienceText = experience ? experience.map(exp => `trabalhou como ${exp.position} na empresa ${exp.company}`).join('; ') : '';
 
     const prompt = `
-    Crie um resumo profissional de 3 a 4 frases para um currículo em português, baseado nas seguintes informações:
-    - Nome: ${name || 'o profissional'}
-    - Habilidades: ${skillsText || 'nenhuma'}
-    - Experiência: ${experienceText || 'nenhuma'}
+      Crie um resumo profissional de 3 a 4 frases para um currículo em português, baseado nas seguintes informações:
+      - Nome: ${name || 'o profissional'}
+      - Habilidades: ${skillsText || 'nenhuma'}
+      - Experiência: ${experienceText || 'nenhuma'}
 
-    **Regras Importantes:**
-    - Responda APENAS com o parágrafo do resumo.
-    - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
-    - O resultado deve ser apenas o texto pronto para ser copiado e colado.
-    - Até no máximo 300 caracteres.
-  `;
+      **Regras Importantes:**
+      - Responda APENAS com o parágrafo do resumo.
+      - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
+      - O resultado deve ser apenas o texto pronto para ser copiado e colado.
+      - Até no máximo 300 caracteres.
+    `;
 
-  generateResumeMutation.mutate(prompt, {
-    onSuccess: (data) => {
-      setValue('resume', data.data.candidates[0].content.parts[0].text.trim(), { shouldValidate: true, shouldDirty: true });
-    },
-    onError: (error) => {
-      console.error("Erro ao gerar resumo:", error);
-      alert("Não foi possível gerar o resumo. Tente novamente.");
-    }
-  })
+    generateResumeMutation.mutate(prompt, {
+      onSuccess: (data) => {
+        setValue('resume', data.data.candidates[0].content.parts[0].text.trim(), { shouldValidate: true, shouldDirty: true });
+      },
+      onError: (error) => {
+        console.error("Erro ao gerar resumo:", error);
+        alert("Não foi possível gerar o resumo. Tente novamente.");
+      }
+    })
   };
 
+  useEffect(() => {
+    if(cvData) {
+      setValue('name', cvData.name);
+      setValue('email', cvData.email);
+      setValue('phone', cvData.phone);
+      setValue('linkedin', cvData.linkedin);
+      setValue('resume', cvData.resume);
+      setValue('code', cvData.code);
+    
+      const skills = cvData.skills || [];
+      setValue('skills', skills);
+
+      const experience = (cvData.experience || []).map(exp => ({
+        ...exp,
+        initial_date: new Date(exp.initial_date),
+        ...(exp.final_date && { final_date: new Date(exp.final_date) }),
+      }));
+      setValue('experience', experience);
+    }
+  }, [cvData, setValue]);
 
   return (
     <main className='flex flex-row'>
       <LeftBar
         control={control}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(
+          (data) => {
+            console.log("Form válido", data);
+            onSubmit(data);
+          },
+          (errors) => {
+            console.log("Erros de validação:", errors);
+            alert("Existem campos inválidos. Confira os dados do formulário.");
+          }
+        )}
         onGenerateResume={handleGenerateResume}
         isGenerating={generateResumeMutation.isPending}
         watch={watch}
         cvRef={cvRef}
+        setCvCode={setCvCode}
       />
       <section className='flex flex-row w-3/4 print:w-full print:h-screen' id='cv-preview' ref={cvRef}>
         <section className='flex flex-col w-3/4 p-8'>
@@ -150,7 +200,7 @@ function App() {
             {watch("experience")?.map((exp, index) => (
               <div key={index} className='flex flex-col my-2'>
                 <h3 className='text-lg font-semibold'>{exp.position} - {exp.company}</h3>
-                <p className='text-xs text-neutral-600'>{exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}</p>
+                <p className='text-xs text-neutral-600'>{exp.initial_date?.toLocaleDateString()} - {exp.is_active ? "Atual" : exp.final_date?.toLocaleDateString()}</p>
                 <p className='text-sm'>{exp.description}</p>
               </div>
             ))}
