@@ -35,7 +35,7 @@ export function TextAreaField({
                 className="border-1 border-neutral-800 p-2 rounded-lg w-full text-neutral-50 placeholder:text-neutral-400 focus:outline-1 outline-neutral-50"
             />
             <div className="text-neutral-400 text-xs flex justify-end">
-                <p>{field.value?.length}/300</p>
+                <p>{field.value?.length ?? 0}/300</p>
             </div>
         </FieldWrapper>
     );

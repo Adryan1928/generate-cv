@@ -12,15 +12,17 @@ class CV(Base):
     phone = Column(String)
     linkedin = Column(String)
     resume = Column(String)
-    skills = relationship("Skill", cascade="all, delete")
-    experiences = relationship("Experience", cascade="all, delete")
+    skills = relationship("Skill", cascade="all, delete", lazy='joined')
+    experience = relationship("Experience", cascade="all, delete", lazy='joined')
+    code = Column(String, unique=True)
 
-    def __init__(self, name, email, phone, linkedin, resume):
+    def __init__(self, name, email, phone, linkedin, resume, code):
         self.name = name
         self.email = email
         self.phone = phone
         self.linkedin = linkedin
         self.resume = resume
+        self.code = code
 
 class Skill(Base):
     __tablename__ = "skills"
@@ -43,7 +45,7 @@ class Experience(Base):
     company = Column(String)
     position = Column(String)
     initial_date = Column(String)
-    final_date = Column(String)
+    final_date = Column(String, nullable=True)
     description = Column(String)
     is_active = Column(Boolean, default=False)
 

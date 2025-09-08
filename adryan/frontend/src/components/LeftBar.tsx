@@ -17,6 +17,7 @@ interface LeftBarProps {
   isGenerating: boolean;
   watch: UseFormWatch<CV>;
   cvRef: React.RefObject<HTMLElement | null>;
+  setCvCode: (query: string) => void;
 }
 
 export interface SelectedSkillProps extends Skill {
@@ -34,6 +35,7 @@ export function LeftBar({
   isGenerating,
   watch,
   cvRef,
+  setCvCode
 }: LeftBarProps){
 
     const [openSkillModal, setOpenSkillModal] = useState(false);
@@ -144,7 +146,7 @@ export function LeftBar({
                                         
                                     </div>
                                     <div>
-                                        <span className="text-xs text-neutral-300">{exp.initialDate?.toLocaleDateString()} - {exp.isActive ? "Atual" : exp.finalDate?.toLocaleDateString()}</span>
+                                        <span className="text-xs text-neutral-300">{exp.initial_date?.toLocaleDateString()} - {exp.is_active ? "Atual" : exp.final_date?.toLocaleDateString()}</span>
                                     </div>
                                     <div>
                                         <span className="text-sm">{exp.description}</span>
@@ -177,10 +179,17 @@ export function LeftBar({
                         setSelectedExperience={setSelectedExperience}
                     />
                 </div>
+
+                <div>
+                    <TextInputField
+                        label="Código"
+                        name="code"
+                        control={control}
+                    />
+                </div>
                 <div className="flex justify-between">
                     <ExportButton name={watch("name")} cvRef={cvRef} />
                     <input type="submit" value="Salvar" className="bg-sky-800 text-white rounded px-4 py-2 hover:bg-sky-700 transition-colors cursor-pointer" />
-                    
                 </div>
             </form>
         </section>
