@@ -1,4 +1,4 @@
-import request from "../utils/request";
+import request, { ResponseWrapper } from "../utils/request";
 
 export interface CV {
   name: string;
@@ -31,5 +31,5 @@ export const createCV = (cv: CV) => {
 }
 
 export const getCV = (code: string) => {
-  return request.get(`/cv/${code}`);
+  return request.get<CV>(`/cv/${code}`);
 }

@@ -13,7 +13,7 @@ export const QueryKeys = {
 export const useGetCVQuery = (code: string) => {
     return useQuery({
         queryKey: QueryKeys.item(code),
-        queryFn: () => getCV(code),
+        queryFn: async () => (await getCV(code)).data,
     });
 }
 

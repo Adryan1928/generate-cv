@@ -180,13 +180,19 @@ export function LeftBar({
                     />
                 </div>
 
-                <div>
+                <div className="flex flex-col gap-2">
                     <TextInputField
                         label="Código"
                         name="code"
                         control={control}
                     />
+                    <div className="flex flex-col justify-center items-end">
+                    <button type="button" onClick={() => setCvCode(watch("code"))} className="border-sky-800 border px-2 py-1 text-white rounded hover:bg-sky-800 transition-colors cursor-pointer mt-2">
+                        Load
+                    </button>
                 </div>
+                </div>
+                
                 <div className="flex justify-between">
                     <ExportButton name={watch("name")} cvRef={cvRef} />
                     <input type="submit" value="Salvar" className="bg-sky-800 text-white rounded px-4 py-2 hover:bg-sky-700 transition-colors cursor-pointer" />

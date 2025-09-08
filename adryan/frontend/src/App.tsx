@@ -1,6 +1,6 @@
 import { LeftBar } from './components/LeftBar'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import { CV } from './services/cv'
+import { CV, getCV } from './services/cv'
 import { MdAlternateEmail } from "react-icons/md";
 import { FaLinkedin } from "react-icons/fa6";
 import { FaPhoneSquareAlt } from "react-icons/fa";
@@ -9,7 +9,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { SkillBar } from './components/SkillBar';
 import { useGenerateResumeMutation } from './hooks/ia';
 import { useEffect, useRef, useState } from 'react';
-import { useCreateCVMutation } from './hooks/cv';
+import { useCreateCVMutation, useGetCVQuery } from './hooks/cv';
 
 
 const schema: Yup.ObjectSchema<CV> = Yup.object({
@@ -59,15 +59,24 @@ function App() {
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      linkedin: "",
+      resume: "",
+      code: "",
       skills: [],
       experience: [],
     },
   })
 
+  const { data: cvData } = useGetCVQuery(cvCode);
+
   const generateResumeMutation = useGenerateResumeMutation()
   const createCVMutation = useCreateCVMutation()
 
   const onSubmit: SubmitHandler<CV> = (data) => {
+    alert(data)
     createCVMutation.mutate(data, {
       onSuccess: (response) => {
         alert("CV salvo com sucesso!");
@@ -85,39 +94,64 @@ function App() {
     const experienceText = experience ? experience.map(exp => `trabalhou como ${exp.position} na empresa ${exp.company}`).join('; ') : '';
 
     const prompt = `
-    Crie um resumo profissional de 3 a 4 frases para um currículo em português, baseado nas seguintes informações:
-    - Nome: ${name || 'o profissional'}
-    - Habilidades: ${skillsText || 'nenhuma'}
-    - Experiência: ${experienceText || 'nenhuma'}
+      Crie um resumo profissional de 3 a 4 frases para um currículo em português, baseado nas seguintes informações:
+      - Nome: ${name || 'o profissional'}
+      - Habilidades: ${skillsText || 'nenhuma'}
+      - Experiência: ${experienceText || 'nenhuma'}
 
-    **Regras Importantes:**
-    - Responda APENAS com o parágrafo do resumo.
-    - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
-    - O resultado deve ser apenas o texto pronto para ser copiado e colado.
-    - Até no máximo 300 caracteres.
-  `;
+      **Regras Importantes:**
+      - Responda APENAS com o parágrafo do resumo.
+      - NÃO inclua títulos, saudações, explicações ou qualquer outro texto.
+      - O resultado deve ser apenas o texto pronto para ser copiado e colado.
+      - Até no máximo 300 caracteres.
+    `;
 
-  generateResumeMutation.mutate(prompt, {
-    onSuccess: (data) => {
-      setValue('resume', data.data.candidates[0].content.parts[0].text.trim(), { shouldValidate: true, shouldDirty: true });
-    },
-    onError: (error) => {
-      console.error("Erro ao gerar resumo:", error);
-      alert("Não foi possível gerar o resumo. Tente novamente.");
-    }
-  })
+    generateResumeMutation.mutate(prompt, {
+      onSuccess: (data) => {
+        setValue('resume', data.data.candidates[0].content.parts[0].text.trim(), { shouldValidate: true, shouldDirty: true });
+      },
+      onError: (error) => {
+        console.error("Erro ao gerar resumo:", error);
+        alert("Não foi possível gerar o resumo. Tente novamente.");
+      }
+    })
   };
 
   useEffect(() => {
+    if(cvData) {
+      setValue('name', cvData.name);
+      setValue('email', cvData.email);
+      setValue('phone', cvData.phone);
+      setValue('linkedin', cvData.linkedin);
+      setValue('resume', cvData.resume);
+      setValue('code', cvData.code);
+    
+      const skills = cvData.skills || [];
+      setValue('skills', skills);
 
-
-  }, [cvCode])
+      const experience = (cvData.experience || []).map(exp => ({
+        ...exp,
+        initial_date: new Date(exp.initial_date),
+        ...(exp.final_date && { final_date: new Date(exp.final_date) }),
+      }));
+      setValue('experience', experience);
+    }
+  }, [cvData, setValue]);
 
   return (
     <main className='flex flex-row'>
       <LeftBar
         control={control}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(
+          (data) => {
+            console.log("Form válido", data);
+            onSubmit(data);
+          },
+          (errors) => {
+            console.log("Erros de validação:", errors);
+            alert("Existem campos inválidos. Confira os dados do formulário.");
+          }
+        )}
         onGenerateResume={handleGenerateResume}
         isGenerating={generateResumeMutation.isPending}
         watch={watch}

@@ -35,6 +35,34 @@ def create_cv(
     Create a CV
     """
 
+    exist_cv = session.query(CV).filter(CV.code == cv.code).first()
+    if exist_cv:
+        for key, value in cv.model_dump(exclude={"skills", "experience"}).items():
+            setattr(exist_cv, key, value)
+
+        for skill in exist_cv.skills:
+            session.delete(skill)
+
+        exist_cv.skills.clear()
+        for skill_data in cv.skills:
+            new_skill = Skill(cv=exist_cv.id, **skill_data.model_dump())
+            exist_cv.skills.append(new_skill)
+
+        for exp in exist_cv.experience:
+            session.delete(exp)
+            
+        exist_cv.experience.clear()
+        for exp_data in cv.experience:
+            new_exp = Experience(cv=exist_cv.id,
+                **exp_data.model_dump(exclude={"initial_date", "final_date"}),
+                initial_date=exp_data.initial_date,
+                final_date=exp_data.final_date
+            )
+            exist_cv.experience.append(new_exp)
+
+        session.commit()
+        return {"cv_id": exist_cv.id, "message": "CV editado com sucesso!"}
+
     try:
         db_cv = CV(**cv.model_dump(exclude={"skills", "experience"}))
         session.add(db_cv)
